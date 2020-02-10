@@ -3,7 +3,12 @@ uuid = "39e74766-396e-420b-955c-dcb1d9319e05"
 authors = ["Gerhard Aigner <gerhard.aigner@gmail.com>"]
 version = "0.1.0"
 
+[deps]
+CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"
+hidapi_jll = "fc16ec7e-3cba-5ca4-a17a-1acd8165bbee"
+
 [compat]
+hidapi_jll = "0.9.0"
 julia = "1"
 
 [extras]
