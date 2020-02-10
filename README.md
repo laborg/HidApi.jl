@@ -16,12 +16,12 @@ Pkg.add("HidApi.jl")
 using HidApi
 ```
 
-# Usage high level API
+# Usage (high level API)
 A high level API allows to enumerate, open, read and write
 
 ```julia
 # initalize
-hidinit()
+init()
 
 # enumerate
 dump.(enumerate_devices())
@@ -37,10 +37,10 @@ data = read(dev)
 close(dev)
 
 # exit
-hidexit()
+shutdown()
 ```
 
-# Usage low level API
+# Usage (low level API)
 All low level `hidapi.h` functions are available but not exported. They typicall are prefixed
 with `hid_xxx`.
 

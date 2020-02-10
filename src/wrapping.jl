@@ -3,7 +3,7 @@
 using hidapi_jll
 using Clang
 
-wc = init(; headers = [joinpath(hidapi_jll.artifact_dir,"include","hidapi","hidapi.h")],
+wc = Clang.init(; headers = [joinpath(hidapi_jll.artifact_dir,"include","hidapi","hidapi.h")],
             output_file = joinpath(@__DIR__,"..","gen","hidapi_api.jl"),
             common_file = joinpath(@__DIR__,"..","gen","hidapi_common.jl"),
             clang_includes = vcat(CLANG_INCLUDE),

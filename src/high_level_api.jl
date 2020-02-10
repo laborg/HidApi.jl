@@ -1,4 +1,7 @@
 
+"""
+Represents a hid device.
+"""
 mutable struct HidDevice
     path::String
     vendor_id::UInt16
@@ -31,18 +34,33 @@ function Base.show(io::IO, ::MIME"text/plain", hd::HidDevice)
     !isempty(hd.serial_number) && print(io, "Serial number: $(hd.serial_number) ")
 end
 
-function hidinit()
+"""
+    init()
+
+Initialize the hidapi library.
+"""
+function init()
     val = hid_init()
     val != 0 && error("init failed")
     return nothing
 end
 
-function hidexit()
+"""
+    shutdown()
+
+Finalize the hidapi library.
+"""
+function shutdown()
     val = hid_exit()
     val != 0 && error("exit failed")
     return nothing
 end
 
+"""
+    enumerate_devices()
+
+Enumerate all connected hid devices.
+"""
 function enumerate_devices()
     hdis = hid_device_info[]
 
@@ -60,7 +78,12 @@ function enumerate_devices()
     return res
 end
 
+"""
+    find_device(vendor_id, product_id, serial_number = nothing)
 
+Find the device with the first matching `vendor_id` and `product_id`. If serial_number is 
+provided it will be used for matching as well.
+"""
 function find_device(vid::UInt16, pid::UInt16, serial_number = nothing)
     for hd in enumerate_devices()
         match = hd.vendor_id == vid && hd.product_id == pid
@@ -77,14 +100,23 @@ function find_device(vid::UInt16, pid::UInt16, serial_number = nothing)
     return nothing
 end
 
+"""
+    open(hid_device)
+
+Open the `hid_device` for subsequent reading/writing.
+"""
 function Base.open(hd::HidDevice)
     hd.handle != C_NULL && error("device has already been opened")
     hd.handle = hid_open_path(hd.path)
     hd.handle == C_NULL && error("error while opening the device $(hd.handle)")
-    finalizer(hd -> hid_close(hd),hd)
     return hd
 end
 
+"""
+    close(hid_device)
+
+Close the `hid_device`. Needs to be called before `shutdown()`.
+"""
 function Base.close(hd::HidDevice)
     hd.handle == C_NULL && error("device isn't open")
     hid_close(hd.handle)
@@ -92,6 +124,12 @@ function Base.close(hd::HidDevice)
     return hd
 end
 
+"""
+    read(hid_device, size = 64, timeout = 2000)
+
+Read a hid message from `hid_device` with `size` within `timeout` milliseconds.
+Usually 64 bytes.
+"""
 function Base.read(hd::HidDevice, size = 64, timeout = 2000)
     size > 64 && error("Can't read more than 64 bytes")
     hd.handle == C_NULL && error("device is closed")
@@ -105,6 +143,11 @@ function Base.read(hd::HidDevice, size = 64, timeout = 2000)
     return data
 end
 
+"""
+    write(hid_device, data::Vector{UInt8})
+
+Write `data` as a hid message to `hid_device`. Usually 64 bytes.
+"""
 function Base.write(hd::HidDevice, data::Vector{UInt8})
     length(data) > 64 && error("Can't write more than 64 bytes")
     hd.handle == C_NULL && error("device is closed")
