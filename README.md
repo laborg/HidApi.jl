@@ -1,6 +1,6 @@
 # HidApi
 
-[![Build Status](https://travis-ci.com/laborg/HidApi.jl.svg?branch=master)](https://travis-ci.com/laborg/HidApi.jl)
+[![Build Status](https://travis-ci.org/laborg/HidApi.jl.svg?branch=master)](https://travis-ci.org/laborg/HidApi.jl)
 
 This is a high level, cross platform wrapper of the `hidapi` library <https://github.com/libusb/hidapi> for
 Julia. It comes with _batteries included_ (no need to install additional libraries).
