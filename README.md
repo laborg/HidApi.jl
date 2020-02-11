@@ -7,12 +7,12 @@ Julia. It comes with _batteries included_ and can be used to communicate with HI
 
 #### Under the hood
 The compiled `hidapi` library is provided by Julias binary build provisioning system in the 
-project `hidapi_jll`(<https://github.com/JuliaBinaryWrappers/hidapi_jll.jl>).
-The low-level C-interace to `hidapi.h` has been created by wrapping the library with Clang.jl.
+project [hidapi_jll](https://github.com/JuliaBinaryWrappers/hidapi_jll.jl).
+The low-level C-interface to `hidapi.h` has been created by wrapping the library using [Clang.jl](https://github.com/JuliaInterop/Clang.jl).
 Finally a couple of functions have been added, forming the high-level API.
 
 # Prerequisits
-None. (On Linux you might need to create a udev rule if the device can't be enumerated)
+*None*. Although on Linux you might need to create a udev rule if the device can't be enumerated.
 
 # Installation
 ```julia
@@ -22,7 +22,7 @@ using HidApi
 
 # Usage (high level API)
 A high level API allows to enumerate or find devices and offers a simple way to read and write
-hid messages. Devices have to be opened
+hid messages. Devices have to be opened before reading or writing.
 
 ```julia
 # initalize
@@ -50,7 +50,6 @@ All low level `hidapi.h` functions are available but not exported. They typicall
 with `hid_xxx`.
 
 ```julia
-
 # initialize
 val = HidApi.hid_init()
 if val < 0
