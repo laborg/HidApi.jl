@@ -156,6 +156,31 @@ function Base.write(hd::HidDevice, data::Vector{UInt8})
     return nothing
 end
 
+# """
+#     getfeature(hid_device, data)
+
+# Get a feature report of the device with `size`. `data[1]` is expected to be the report id.
+# """
+# function getfeature(hd::HidDevice, data::Vector{UInt8})
+#     hd.handle == C_NULL && error("device is closed")
+#     val = hid_get_feature_report(hd.handle, data, length(data))
+#     val == -1 && error("error while reading")
+#     return data[1:val]
+# end
+
+# """
+#     sendfeature(hid_device, data)
+
+# Send `data` as a feature report on the hid device. `data[1]` is expecte to be the report id.
+# """
+# function sendfeature(hd::HidDevice, data::Vector{UInt8})
+#     hd.handle == C_NULL && error("device is closed")
+#     val = hid_send_feature_report(hd.handle, data, length(data))
+#     val == -1 && error("error while reading")
+#     return data
+# end
+
+
 manufacturer_string(hd::HidDevice) = _read_hid_string(hd, hid_get_manufacturer_string)
 product_string(hd::HidDevice) = _read_hid_string(hd, hid_get_product_string)
 serial_number_string(hd::HidDevice) = _read_hid_string(hd, hid_get_serial_number_string)

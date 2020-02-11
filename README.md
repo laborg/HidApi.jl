@@ -3,12 +3,16 @@
 [![Build Status](https://travis-ci.org/laborg/HidApi.jl.svg?branch=master)](https://travis-ci.org/laborg/HidApi.jl)
 
 This is a high level, cross platform wrapper of the `hidapi` library <https://github.com/libusb/hidapi> for
-Julia. It comes with _batteries included_ (no need to install additional libraries).
-It can be used to communicate with HID devices on Linux, Mac and Windows. 
+Julia. It comes with _batteries included_ and can be used to communicate with HID devices on _Linux, Mac and Windows_.
 
-### Under the hood
-The binary build of the `hidapi` library is provided by Julias binary build infrastructure and
-can be found here: `hidapi_jll`(<https://github.com/JuliaBinaryWrappers/hidapi_jll.jl>)
+#### Under the hood
+The compiled `hidapi` library is provided by Julias binary build provisioning system in the 
+project `hidapi_jll`(<https://github.com/JuliaBinaryWrappers/hidapi_jll.jl>).
+The low-level C-interace to `hidapi.h` has been created by wrapping the library with Clang.jl.
+Finally a couple of functions have been added, forming the high-level API.
+
+# Prerequisits
+None. (On Linux you might need to create a udev rule if the device can't be enumerated)
 
 # Installation
 ```julia
@@ -17,7 +21,8 @@ using HidApi
 ```
 
 # Usage (high level API)
-A high level API allows to enumerate, open, read and write
+A high level API allows to enumerate or find devices and offers a simple way to read and write
+hid messages. Devices have to be opened
 
 ```julia
 # initalize
@@ -41,7 +46,7 @@ shutdown()
 ```
 
 # Usage (low level API)
-All low level `hidapi.h` functions are available but not exported. They typicall are prefixed
+All low level `hidapi.h` functions are available but not exported. They typically are prefixed
 with `hid_xxx`.
 
 ```julia
@@ -87,5 +92,8 @@ HidApi.hid_close(handle)
 HidApi.hid_exit()
 ```
 
+### Mixing low-level and high-level
+In case you need to do something thats not possible with the high level interface you
+can use the low-level calls by using the `handle` from a `HidDevice`.
 
 
