@@ -93,6 +93,6 @@ HidApi.hid_exit()
 
 ### Mixing low-level and high-level
 In case you need to do something thats not possible with the high level interface you
-can use the low-level calls by using the `handle` from a `HidDevice`.
+can mix in the low-level calls by using the `handle` from a `HidDevice`.
 
 
