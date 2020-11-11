@@ -50,6 +50,10 @@ function hid_get_feature_report(dev, data, length)
     ccall((:hid_get_feature_report, hidapi), Cint, (Ptr{hid_device}, Ptr{Cuchar}, Csize_t), dev, data, length)
 end
 
+function hid_get_input_report(dev, data, length)
+    ccall((:hid_get_input_report, hidapi), Cint, (Ptr{hid_device}, Ptr{Cuchar}, Csize_t), dev, data, length)
+end
+
 function hid_close(dev)
     ccall((:hid_close, hidapi), Cvoid, (Ptr{hid_device},), dev)
 end
@@ -72,4 +76,12 @@ end
 
 function hid_error(dev)
     ccall((:hid_error, hidapi), Ptr{Cwchar_t}, (Ptr{hid_device},), dev)
+end
+
+function hid_version()
+    ccall((:hid_version, hidapi), Ptr{hid_api_version}, ())
+end
+
+function hid_version_str()
+    ccall((:hid_version_str, hidapi), Cstring, ())
 end

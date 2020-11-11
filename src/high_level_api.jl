@@ -81,7 +81,7 @@ end
 """
     find_device(vendor_id, product_id, serial_number = nothing)
 
-Find the device with the first matching `vendor_id` and `product_id`. If serial_number is 
+Find the device with the first matching `vendor_id` and `product_id`. If serial_number is
 provided it will be used for matching as well.
 """
 function find_device(vid::UInt16, pid::UInt16, serial_number = nothing)
@@ -159,6 +159,7 @@ end
 manufacturer_string(hd::HidDevice) = _read_hid_string(hd, hid_get_manufacturer_string)
 product_string(hd::HidDevice) = _read_hid_string(hd, hid_get_product_string)
 serial_number_string(hd::HidDevice) = _read_hid_string(hd, hid_get_serial_number_string)
+lib_version() = unsafe_string(hid_version_str())
 
 function _read_hid_string(hd::HidDevice, f::Base.Callable; maxlength = 256)
     hd.handle == C_NULL && error("device is closed")
