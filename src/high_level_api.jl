@@ -108,7 +108,7 @@ Open the `hid_device` for subsequent reading/writing.
 function Base.open(hd::HidDevice)
     hd.handle != C_NULL && error("device has already been opened")
     hd.handle = hid_open_path(hd.path)
-    hd.handle == C_NULL && error("error while opening the device $(hd.handle)")
+    hd.handle == C_NULL && error("couldn't open the device $(hd.handle)")
     return hd
 end
 
@@ -131,7 +131,7 @@ Read a hid message from `hid_device` with `size` within `timeout` milliseconds.
 Usually 64 bytes.
 """
 function Base.read(hd::HidDevice, size = 64, timeout = 2000)
-    size > 64 && error("Can't read more than 64 bytes")
+    size > 64 && error("can't read more than 64 bytes")
     hd.handle == C_NULL && error("device is closed")
     data = Vector{Cuchar}(undef, size)
     val = if timeout == 0
@@ -139,7 +139,10 @@ function Base.read(hd::HidDevice, size = 64, timeout = 2000)
     else
         hid_read_timeout(hd.handle, data, size, timeout)
     end
-    val == -1 && error("error while reading")
+    if val == -1
+        err = _wcharstring(hid_error(hd.handle))
+        error("hid_read() failed: $err")
+    end
     return data
 end
 
@@ -149,10 +152,13 @@ end
 Write `data` as a hid message to `hid_device`. Usually 64 bytes.
 """
 function Base.write(hd::HidDevice, data::Vector{UInt8})
-    length(data) > 64 && error("Can't write more than 64 bytes")
+    length(data) > 64 && error("can't write more than 64 bytes")
     hd.handle == C_NULL && error("device is closed")
     written = hid_write(hd.handle, data, length(data))
-    written == -1 && error("error while writing data")
+    if written == -1
+        err = _wcharstring(hid_error(hd.handle))
+        error("hid_write() failed: $err")
+    end
     return nothing
 end
 
