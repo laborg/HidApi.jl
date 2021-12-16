@@ -139,6 +139,9 @@ function Base.read(hd::HidDevice, size = 64, timeout = 2000)
     else
         hid_read_timeout(hd.handle, data, size, timeout)
     end
+    if timeout == val == 0
+        warn("hid_read_timeout() timed out")
+    end
     if val == -1
         err = _wcharstring(hid_error(hd.handle))
         error("hid_read() failed: $err")
@@ -172,7 +175,7 @@ function _read_hid_string(hd::HidDevice, f::Base.Callable; maxlength = 256)
     str = Vector{Cwchar_t}(undef, maxlength)
     val = hid_get_serial_number_string(hd.handle, str, maxlength)
     val != 0 && error("couldn't read string")
-    return transcode(String, str)[1:findfirst(==(0), str) - 1]
+    return transcode(String, str)[1:findfirst(==(0), str)-1]
 end
 
 function _wcharstring(p::Ptr{Cwchar_t})
