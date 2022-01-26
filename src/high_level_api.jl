@@ -14,7 +14,8 @@ mutable struct HidDevice
     handle::Ptr{hid_device}
     _hid_device_info::hid_device_info
     function HidDevice(hdi::hid_device_info)
-        new(unsafe_string(hdi.path),
+        return new(
+            unsafe_string(hdi.path),
             hdi.vendor_id,
             hdi.product_id,
             _wcharstring(hdi.serial_number),
@@ -23,15 +24,22 @@ mutable struct HidDevice
             _wcharstring(hdi.product_string),
             hdi.interface_number,
             C_NULL,
-            hdi)
+            hdi,
+        )
     end
 end
 
 function Base.show(io::IO, ::MIME"text/plain", hd::HidDevice)
-    println(io, "Vendor/Product ID: $(repr(hd.vendor_id))/$(repr(hd.product_id)), Path: $(hd.path)")
-    !isempty(hd.manufacturer_string) && print(io, "Manufacturer: $(hd.manufacturer_string) ")
-    !isempty(hd.product_string) && print(io, "Product: $(hd.product_string) ")
-    !isempty(hd.serial_number) && print(io, "Serial number: $(hd.serial_number) ")
+    return print(
+        io,
+        """
+Vendor/Product ID : $(repr(hd.vendor_id)) / $(repr(hd.product_id))
+             Path : $(hd.path)
+          Product : $(hd.product_string)
+    Serial number : $(hd.serial_number)
+     Manufacturer : $(hd.manufacturer_string)""",
+    )
+    return nothing
 end
 
 """
@@ -84,7 +92,7 @@ end
 Find the device with the first matching `vendor_id` and `product_id`. If serial_number is
 provided it will be used for matching as well.
 """
-function find_device(vid::UInt16, pid::UInt16, serial_number = nothing)
+function find_device(vid::UInt16, pid::UInt16, serial_number=nothing)
     for hd in enumerate_devices()
         match = hd.vendor_id == vid && hd.product_id == pid
         if serial_number === nothing
@@ -130,7 +138,7 @@ end
 Read a hid message from `hid_device` with `size` within `timeout` milliseconds.
 Usually 64 bytes.
 """
-function Base.read(hd::HidDevice, size = 64, timeout = 2000)
+function Base.read(hd::HidDevice, size=64, timeout=2000)
     size > 64 && error("can't read more than 64 bytes")
     hd.handle == C_NULL && error("device is closed")
     data = Vector{Cuchar}(undef, size)
@@ -168,12 +176,12 @@ product_string(hd::HidDevice) = _read_hid_string(hd, hid_get_product_string)
 serial_number_string(hd::HidDevice) = _read_hid_string(hd, hid_get_serial_number_string)
 lib_version() = unsafe_string(hid_version_str())
 
-function _read_hid_string(hd::HidDevice, f::Base.Callable; maxlength = 256)
+function _read_hid_string(hd::HidDevice, f::Base.Callable; maxlength=256)
     hd.handle == C_NULL && error("device is closed")
     str = Vector{Cwchar_t}(undef, maxlength)
     val = f(hd.handle, str, maxlength)
     val != 0 && error("couldn't read string")
-    return transcode(String, str)[1:findfirst(==(0), str)-1]
+    return transcode(String, str)[1:(findfirst(==(0), str) - 1)]
 end
 
 function _wcharstring(p::Ptr{Cwchar_t})
@@ -184,5 +192,5 @@ function _wcharstring(p::Ptr{Cwchar_t})
         len += 1
         push!(arr, c)
     end
-    transcode(String, arr)
+    return transcode(String, arr)
 end

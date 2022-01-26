@@ -1,6 +1,6 @@
 module HidApi
 
-import hidapi_jll
+using hidapi_jll: hidapi_jll
 const hidapi = hidapi_jll.hidapi
 
 include(joinpath(@__DIR__, "hidapi_common.jl"))
