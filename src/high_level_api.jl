@@ -143,8 +143,6 @@ function Base.read(hd::HidDevice, size = 64, timeout = 2000)
         warn("hid_read_timeout() timed out")
     end
     if val == -1
-        #err = _wcharstring(hid_error(hd.handle))
-        #error("hid_read() failed: $err")
         error("hid_read() failed.")
     end
     return data
@@ -160,8 +158,6 @@ function Base.write(hd::HidDevice, data::Vector{UInt8})
     hd.handle == C_NULL && error("device is closed")
     written = hid_write(hd.handle, data, length(data))
     if written == -1
-        #err = _wcharstring(hid_error(hd.handle))
-        #error("hid_write() failed: $err")
         error("hid_write() failed")
     end
     return nothing
@@ -175,7 +171,7 @@ lib_version() = unsafe_string(hid_version_str())
 function _read_hid_string(hd::HidDevice, f::Base.Callable; maxlength = 256)
     hd.handle == C_NULL && error("device is closed")
     str = Vector{Cwchar_t}(undef, maxlength)
-    val = hid_get_serial_number_string(hd.handle, str, maxlength)
+    val = f(hd.handle, str, maxlength)
     val != 0 && error("couldn't read string")
     return transcode(String, str)[1:findfirst(==(0), str)-1]
 end
