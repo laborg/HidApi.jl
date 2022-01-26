@@ -11,7 +11,7 @@ function hid_exit()
 end
 
 function hid_enumerate(vendor_id, product_id)
-    ccall((:hid_enumerate, hidapi), Ptr{hid_device_info}, (UInt16, UInt16), vendor_id, product_id)
+    ccall((:hid_enumerate, hidapi), Ptr{hid_device_info}, (Cushort, Cushort), vendor_id, product_id)
 end
 
 function hid_free_enumeration(devs)
@@ -19,7 +19,7 @@ function hid_free_enumeration(devs)
 end
 
 function hid_open(vendor_id, product_id, serial_number)
-    ccall((:hid_open, hidapi), Ptr{hid_device}, (UInt16, UInt16, Ptr{Cwchar_t}), vendor_id, product_id, serial_number)
+    ccall((:hid_open, hidapi), Ptr{hid_device}, (Cushort, Cushort, Ptr{Cwchar_t}), vendor_id, product_id, serial_number)
 end
 
 function hid_open_path(path)
