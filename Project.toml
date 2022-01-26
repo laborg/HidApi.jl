@@ -1,13 +1,13 @@
 name = "HidApi"
 uuid = "39e74766-396e-420b-955c-dcb1d9319e05"
 authors = ["Gerhard Aigner <gerhard.aigner@gmail.com>"]
-version = "1.0.1"
+version = "1.1.0"
 
 [deps]
 hidapi_jll = "fc16ec7e-3cba-5ca4-a17a-1acd8165bbee"
 
 [compat]
-hidapi_jll = "0.10.0"
+hidapi_jll = "0.11.2"
 julia = "1"
 
 [extras]
