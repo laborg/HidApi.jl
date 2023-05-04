@@ -1,5 +1,4 @@
 .DS_Store
 /dev/
-/gen
 /src/playground.jl
 Manifest.toml

@@ -1,6 +1,0 @@
-[general]
-library_name = "hidapi"
-output_file_path = "../gen/HidApi.jl"
-module_name = "HidApi"
-jll_pkg_name = "hidapi_jll"
-export_symbol_prefixes = ["hid_"]

@@ -1,0 +1,16 @@
+[general]
+library_name = "hidapi"
+output_api_file_path = "../src/api.jl"
+output_common_file_path = "../src/common.jl"
+module_name = ""
+jll_pkg_name = "hidapi_jll"
+use_julia_native_enum_type = true
+export_symbol_prefixes = ["hid_"]
+output_ignorelist = [""]
+extract_c_comment_style = "doxygen"
+
+[codegen]
+use_ccall_macro = true
+
+[codegen.macro]
+macro_mode = "disable"

@@ -1,6 +1,6 @@
 
 """
-Represents a hid device.
+Represents a HID device.
 """
 mutable struct HidDevice
     path::String
@@ -10,6 +10,8 @@ mutable struct HidDevice
     release_number::UInt16
     manufacturer_string::String
     product_string::String
+    usage_page::UInt16
+    usage::UInt16
     interface_number::Int
     handle::Ptr{hid_device}
     _hid_device_info::hid_device_info
@@ -22,6 +24,8 @@ mutable struct HidDevice
             hdi.release_number,
             _wcharstring(hdi.manufacturer_string),
             _wcharstring(hdi.product_string),
+            hdi.usage_page,
+            hdi.usage,
             hdi.interface_number,
             C_NULL,
             hdi,
@@ -42,6 +46,9 @@ Vendor/Product ID : $(repr(hd.vendor_id)) / $(repr(hd.product_id))
     return nothing
 end
 
+_hid_error() = _wcharstring(hid_error(C_NULL))
+_hid_error(hd) = _wcharstring(hid_error(hd.handle))
+
 """
     init()
 
@@ -49,7 +56,7 @@ Initialize the hidapi library.
 """
 function init()
     val = hid_init()
-    val != 0 && error("init failed")
+    val != 0 && error("init failed: $(_hid_error())")
     return nothing
 end
 
@@ -92,7 +99,9 @@ end
 Find the device with the first matching `vendor_id` and `product_id`. If serial_number is
 provided it will be used for matching as well.
 """
-function find_device(vid::UInt16, pid::UInt16, serial_number=nothing)
+function find_device(vid::Integer, pid::Integer, serial_number=nothing)
+    vid = convert(UInt16, vid)
+    pid = convert(UInt16, pid)
     for hd in enumerate_devices()
         match = hd.vendor_id == vid && hd.product_id == pid
         if serial_number === nothing
@@ -109,6 +118,19 @@ function find_device(vid::UInt16, pid::UInt16, serial_number=nothing)
 end
 
 """
+    find_devices(vendor_id, product_id)
+
+Find all devices with matching `vendor_id` and `product_id`.
+"""
+function find_devices(vid::Integer, pid::Integer)
+    vid = convert(UInt16, vid)
+    pid = convert(UInt16, pid)
+    return filter(enumerate_devices()) do hd
+        hd.vendor_id === vid && hd.product_id === pid
+    end
+end
+
+"""
     open(hid_device)
 
 Open the `hid_device` for subsequent reading/writing.
@@ -116,7 +138,8 @@ Open the `hid_device` for subsequent reading/writing.
 function Base.open(hd::HidDevice)
     hd.handle != C_NULL && error("device has already been opened")
     hd.handle = hid_open_path(hd.path)
-    hd.handle == C_NULL && error("couldn't open the device $(hd.handle)")
+    hd.handle == C_NULL &&
+        error("couldn't open the device $(hd.handle) (err: $(_hid_error()))")
     return hd
 end
 
@@ -151,7 +174,7 @@ function Base.read(hd::HidDevice, size=64, timeout=2000)
         warn("hid_read_timeout() timed out")
     end
     if val == -1
-        error("hid_read() failed.")
+        error("hid_read() failed: $(hid_error(hd.handle))")
     end
     return data
 end
@@ -166,7 +189,7 @@ function Base.write(hd::HidDevice, data::Vector{UInt8})
     hd.handle == C_NULL && error("device is closed")
     written = hid_write(hd.handle, data, length(data))
     if written == -1
-        error("hid_write() failed")
+        error("hid_write() failed: $(hid_error(hd.handle))")
     end
     return nothing
 end

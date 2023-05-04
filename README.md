@@ -5,6 +5,13 @@
 This is a high level, cross platform wrapper of the `hidapi` library <https://github.com/libusb/hidapi> for
 Julia. It comes with _batteries included_ and can be used to communicate with HID devices on _Linux, Mac and Windows_.
 
+### Changelog
+- 1.2.0
+  - Added doc strings for low level api
+  - Updated to use hidapi library version 0.13.1
+- 1.x
+  - Initial release
+
 #### Under the hood
 The compiled `hidapi` library is provided by Julias binary build provisioning system in the 
 project [hidapi_jll](https://github.com/JuliaBinaryWrappers/hidapi_jll.jl).
@@ -32,7 +39,7 @@ init()
 dump.(enumerate_devices())
 
 # open and read data
-dev = open(find_device(0x04ec, 0x2605))
+dev = open(find_device(0x04ec, 0x2605)) # or `find_devices()` for multiple devices...
 data = read(dev)
 
 # do something with data
