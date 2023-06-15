@@ -1,3 +1,8 @@
+"""
+    hid_api_version
+
+A structure to hold the version numbers.
+"""
 struct hid_api_version
     major::Cint
     minor::Cint

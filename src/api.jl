@@ -371,6 +371,28 @@ function hid_get_indexed_string(dev, string_index, string, maxlen)
 end
 
 """
+    hid_get_report_descriptor(dev, buf, buf_size)
+
+Get a report descriptor from a HID device.
+
+Since version 0.14.0, HID_API_VERSION >= HID\\_API\\_MAKE\\_VERSION(0, 14, 0)
+
+User has to provide a preallocated buffer where descriptor will be copied to.	The recommended size for preallocated buffer is HID_API_MAX_REPORT_DESCRIPTOR_SIZE bytes.
+
+` API`
+
+### Parameters
+* `dev`: A device handle returned from hid\\_open().
+* `buf`: The buffer to copy descriptor into.
+* `buf_size`: The size of the buffer in bytes.
+### Returns
+This function returns non-negative number of bytes actually copied, or -1 on error.
+"""
+function hid_get_report_descriptor(dev, buf, buf_size)
+    @ccall hidapi.hid_get_report_descriptor(dev::Ptr{hid_device}, buf::Ptr{Cuchar}, buf_size::Csize_t)::Cint
+end
+
+"""
     hid_error(dev)
 
 Get a string describing the last error which occurred.

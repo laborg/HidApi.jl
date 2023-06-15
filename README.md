@@ -6,6 +6,8 @@ This is a high level, cross platform wrapper of the `hidapi` library <https://gi
 Julia. It comes with _batteries included_ and can be used to communicate with HID devices on _Linux, Mac and Windows_.
 
 ### Changelog
+- 1.3.0
+  - Added `hid_get_report_descriptor(...)` call
 - 1.2.0
   - Added doc strings for low level api
   - Updated to use hidapi library version 0.13.1
