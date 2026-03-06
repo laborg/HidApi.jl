@@ -202,6 +202,7 @@ end
     open(hid_device)
 
 Open the `hid_device` for subsequent reading/writing.
+Automatically initializes the hidapi library if needed.
 """
 function Base.open(hd::HidDevice)
     ensure_initialized()
@@ -222,7 +223,7 @@ end
 """
     close(hid_device)
 
-Close the `hid_device`. Needs to be called before `shutdown()`.
+Close the `hid_device`. Safe to call multiple times.
 """
 function Base.close(hd::HidDevice)
     hd.handle == C_NULL && return hd
@@ -240,6 +241,9 @@ end
 
 Read a hid message from `hid_device` with `size` within `timeout` milliseconds.
 Usually 64 bytes.
+
+Throws `DeviceNotConnectedError` if the device is no longer connected,
+or `HidDeviceError` on other read failures.
 """
 function Base.read(hd::HidDevice, size=64, timeout=2000)
     size > 64 && error("can't read more than 64 bytes")
@@ -263,6 +267,9 @@ end
     write(hid_device, data::Vector{UInt8})
 
 Write `data` as a hid message to `hid_device`. Usually 64 bytes.
+
+Throws `DeviceNotConnectedError` if the device is no longer connected,
+or `HidDeviceError` on other write failures.
 """
 function Base.write(hd::HidDevice, data::Vector{UInt8})
     length(data) > 64 && error("can't write more than 64 bytes")
