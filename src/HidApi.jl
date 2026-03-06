@@ -7,7 +7,7 @@ include(joinpath(@__DIR__, "common.jl"))
 include(joinpath(@__DIR__, "api.jl"))
 include(joinpath(@__DIR__, "high_level_api.jl"))
 
-export HidDevice
+export HidDevice, HidDeviceError, DeviceNotConnectedError
 export init, shutdown, ensure_initialized, open, close, read, write
 export find_device, find_devices, enumerate_devices
 

@@ -1,4 +1,24 @@
 
+"""
+    HidDeviceError <: Exception
+
+Error related to HID device operations.
+"""
+struct HidDeviceError <: Exception
+    msg::String
+end
+Base.showerror(io::IO, e::HidDeviceError) = print(io, e.msg)
+
+"""
+    DeviceNotConnectedError <: Exception
+
+The HID device is not connected.
+"""
+struct DeviceNotConnectedError <: Exception
+    msg::String
+end
+Base.showerror(io::IO, e::DeviceNotConnectedError) = print(io, e.msg)
+
 const _open_devices = Set{Any}()
 
 const _hid_init = Base.OncePerProcess{Nothing}() do
@@ -73,6 +93,30 @@ end
 _hid_error() = _wcharstring(hid_error(C_NULL))
 _hid_error(hd) = _wcharstring(hid_error(hd.handle))
 _hid_read_error(hd) = _wcharstring(hid_read_error(hd.handle))
+
+function _device_error(hd::HidDevice, operation::String, reason::String)
+    if !_is_device_connected(hd)
+        throw(DeviceNotConnectedError("$operation failed: device not connected ($(repr(hd.vendor_id)):$(repr(hd.product_id)) at $(hd.path))"))
+    end
+    throw(HidDeviceError("$operation failed: $reason"))
+end
+
+function _is_device_connected(hd::HidDevice)
+    devs = hid_enumerate(hd.vendor_id, hd.product_id)
+    devs == C_NULL && return false
+    found = false
+    cur_dev = devs
+    while cur_dev != C_NULL
+        info = unsafe_load(cur_dev)
+        if unsafe_string(info.path) == hd.path
+            found = true
+            break
+        end
+        cur_dev = info.next
+    end
+    hid_free_enumeration(devs)
+    return found
+end
 
 Base.@deprecate init() ensure_initialized()
 
@@ -207,7 +251,7 @@ function Base.read(hd::HidDevice, size=64, timeout=2000)
         warn("hid_read_timeout() timed out")
     end
     if val == -1
-        error("hid_read() failed: $(_hid_read_error(hd))")
+        _device_error(hd, "hid_read", _hid_read_error(hd))
     end
     return data
 end
@@ -222,7 +266,7 @@ function Base.write(hd::HidDevice, data::Vector{UInt8})
     hd.handle == C_NULL && error("device is closed")
     written = hid_write(hd.handle, data, length(data))
     if written == -1
-        error("hid_write() failed: $(_hid_error(hd))")
+        _device_error(hd, "hid_write", _hid_error(hd))
     end
     return nothing
 end
