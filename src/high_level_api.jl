@@ -225,10 +225,13 @@ end
 Close the `hid_device`. Needs to be called before `shutdown()`.
 """
 function Base.close(hd::HidDevice)
-    hd.handle == C_NULL && error("device isn't open")
-    hid_close(hd.handle)
-    hd.handle = C_NULL
-    delete!(_open_devices, hd)
+    hd.handle == C_NULL && return hd
+    try
+        hid_close(hd.handle)
+    finally
+        hd.handle = C_NULL
+        delete!(_open_devices, hd)
+    end
     return hd
 end
 
