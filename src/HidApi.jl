@@ -8,7 +8,7 @@ include(joinpath(@__DIR__, "api.jl"))
 include(joinpath(@__DIR__, "high_level_api.jl"))
 
 export HidDevice
-export init, shutdown, open, close, read, write
+export init, shutdown, ensure_initialized, open, close, read, write
 export find_device, find_devices, enumerate_devices
 
 end # module

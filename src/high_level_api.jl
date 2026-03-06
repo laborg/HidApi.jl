@@ -1,4 +1,28 @@
 
+const _open_devices = Set{Any}()
+
+const _hid_init = Base.OncePerProcess{Nothing}() do
+    val = hid_init()
+    val != 0 && error("hid_init failed: $(_hid_error())")
+    atexit() do
+        for hd in collect(_open_devices)
+            hd.handle == C_NULL && continue
+            hid_close(hd.handle)
+            hd.handle = C_NULL
+        end
+        empty!(_open_devices)
+        hid_exit()
+    end
+    return nothing
+end
+
+"""
+    ensure_initialized()
+
+Ensure the hidapi library is initialized. Called automatically by API functions.
+"""
+ensure_initialized() = _hid_init()
+
 """
 Represents a HID device.
 """
@@ -49,23 +73,21 @@ end
 _hid_error() = _wcharstring(hid_error(C_NULL))
 _hid_error(hd) = _wcharstring(hid_error(hd.handle))
 
-"""
-    init()
-
-Initialize the hidapi library.
-"""
-function init()
-    val = hid_init()
-    val != 0 && error("init failed: $(_hid_error())")
-    return nothing
-end
+Base.@deprecate init() ensure_initialized()
 
 """
     shutdown()
 
-Finalize the hidapi library.
+Finalize the hidapi library. Deprecated: cleanup is handled automatically at process exit.
 """
 function shutdown()
+    Base.depwarn("`shutdown()` is deprecated. Cleanup is now handled automatically at process exit.", :shutdown)
+    for hd in collect(_open_devices)
+        hd.handle == C_NULL && continue
+        hid_close(hd.handle)
+        hd.handle = C_NULL
+    end
+    empty!(_open_devices)
     val = hid_exit()
     val != 0 && error("exit failed")
     return nothing
@@ -77,6 +99,7 @@ end
 Enumerate all connected hid devices.
 """
 function enumerate_devices()
+    ensure_initialized()
     hdis = hid_device_info[]
 
     devs = hid_enumerate(0x0, 0x0)
@@ -136,10 +159,18 @@ end
 Open the `hid_device` for subsequent reading/writing.
 """
 function Base.open(hd::HidDevice)
+    ensure_initialized()
     hd.handle != C_NULL && error("device has already been opened")
     hd.handle = hid_open_path(hd.path)
     hd.handle == C_NULL &&
         error("couldn't open the device $(hd.handle) (err: $(_hid_error()))")
+    push!(_open_devices, hd)
+    finalizer(hd) do dev
+        dev.handle == C_NULL && return
+        hid_close(dev.handle)
+        dev.handle = C_NULL
+        delete!(_open_devices, dev)
+    end
     return hd
 end
 
@@ -152,6 +183,7 @@ function Base.close(hd::HidDevice)
     hd.handle == C_NULL && error("device isn't open")
     hid_close(hd.handle)
     hd.handle = C_NULL
+    delete!(_open_devices, hd)
     return hd
 end
 
