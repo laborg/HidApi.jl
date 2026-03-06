@@ -72,6 +72,7 @@ end
 
 _hid_error() = _wcharstring(hid_error(C_NULL))
 _hid_error(hd) = _wcharstring(hid_error(hd.handle))
+_hid_read_error(hd) = _wcharstring(hid_read_error(hd.handle))
 
 Base.@deprecate init() ensure_initialized()
 
@@ -206,7 +207,7 @@ function Base.read(hd::HidDevice, size=64, timeout=2000)
         warn("hid_read_timeout() timed out")
     end
     if val == -1
-        error("hid_read() failed: $(hid_error(hd.handle))")
+        error("hid_read() failed: $(_hid_read_error(hd))")
     end
     return data
 end
@@ -221,7 +222,7 @@ function Base.write(hd::HidDevice, data::Vector{UInt8})
     hd.handle == C_NULL && error("device is closed")
     written = hid_write(hd.handle, data, length(data))
     if written == -1
-        error("hid_write() failed: $(hid_error(hd.handle))")
+        error("hid_write() failed: $(_hid_error(hd))")
     end
     return nothing
 end

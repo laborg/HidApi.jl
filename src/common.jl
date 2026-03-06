@@ -37,21 +37,14 @@ struct hid_device_info
     path::Ptr{Cchar}
     vendor_id::Cushort
     product_id::Cushort
-    serial_number::Ptr{Cvoid} # serial_number::Ptr{Cwchar_t}
+    serial_number::Ptr{Cwchar_t}
     release_number::Cushort
-    manufacturer_string::Ptr{Cvoid} # manufacturer_string::Ptr{Cwchar_t}
-    product_string::Ptr{Cvoid} # product_string::Ptr{Cwchar_t}
+    manufacturer_string::Ptr{Cwchar_t}
+    product_string::Ptr{Cwchar_t}
     usage_page::Cushort
     usage::Cushort
     interface_number::Cint
     next::Ptr{hid_device_info}
     bus_type::hid_bus_type
-end
-
-function Base.getproperty(x::hid_device_info, f::Symbol)
-    f === :serial_number && return Ptr{Cwchar_t}(getfield(x, f))
-    f === :manufacturer_string && return Ptr{Cwchar_t}(getfield(x, f))
-    f === :product_string && return Ptr{Cwchar_t}(getfield(x, f))
-    return getfield(x, f)
 end
 

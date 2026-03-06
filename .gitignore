@@ -2,3 +2,4 @@
 /dev/
 /src/playground.jl
 Manifest.toml
+.vscode/settings.json

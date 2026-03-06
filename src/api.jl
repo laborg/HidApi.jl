@@ -7,7 +7,7 @@ This function initializes the HIDAPI library. Calling it is not	strictly necessa
 
 ` API`
 
-### Returns
+# Returns
 This function returns 0 on success and -1 on error.	Call hid\\_error(NULL) to get the failure reason.
 """
 function hid_init()
@@ -23,7 +23,7 @@ This function frees all of the static data associated with	HIDAPI. It should be 
 
 ` API`
 
-### Returns
+# Returns
 This function returns 0 on success and -1 on error.
 """
 function hid_exit()
@@ -43,10 +43,10 @@ This function returns a linked list of all the HID devices	attached to the syste
 
     The returned value by this function must to be freed by calling hid\\_free\\_enumeration(),	when not needed anymore.
 
-### Parameters
+# Arguments
 * `vendor_id`: The Vendor ID (VID) of the types of device	to open.
 * `product_id`: The Product ID (PID) of the types of	device to open.
-### Returns
+# Returns
 This function returns a pointer to a linked list of type	struct #hid\\_device\\_info, containing information about the HID devices	attached to the system,	or NULL in the case of failure or if no HID devices present in the system.	Call hid\\_error(NULL) to get the failure reason.
 """
 function hid_enumerate(vendor_id, product_id)
@@ -62,7 +62,7 @@ This function frees a linked list created by hid\\_enumerate().
 
 ` API`
 
-### Parameters
+# Arguments
 * `devs`: Pointer to a list of struct\\_device returned from	hid\\_enumerate().
 """
 function hid_free_enumeration(devs)
@@ -82,11 +82,11 @@ If `serial_number` is NULL, the first device with the	specified VID and PID is o
 
     The returned object must be freed by calling hid\\_close(),	when not needed anymore.
 
-### Parameters
+# Arguments
 * `vendor_id`: The Vendor ID (VID) of the device to open.
 * `product_id`: The Product ID (PID) of the device to open.
 * `serial_number`: The Serial Number of the device to open	(Optionally NULL).
-### Returns
+# Returns
 This function returns a pointer to a #hid\\_device object on	success or NULL on failure.	Call hid\\_error(NULL) to get the failure reason.
 """
 function hid_open(vendor_id, product_id, serial_number)
@@ -106,9 +106,9 @@ The path name be determined by calling hid\\_enumerate(), or a	platform-specific
 
     The returned object must be freed by calling hid\\_close(),	when not needed anymore.
 
-### Parameters
+# Arguments
 * `path`: The path name of the device to open
-### Returns
+# Returns
 This function returns a pointer to a #hid\\_device object on	success or NULL on failure.	Call hid\\_error(NULL) to get the failure reason.
 """
 function hid_open_path(path)
@@ -122,15 +122,15 @@ Write an Output report to a HID device.
 
 The first byte of `data`[] must contain the Report ID. For	devices which only support a single report, this must be set	to 0x0. The remaining bytes contain the report data. Since	the Report ID is mandatory, calls to hid\\_write() will always	contain one more byte than the report contains. For example,	if a hid report is 16 bytes long, 17 bytes must be passed to	hid\\_write(), the Report ID (or 0x0, for devices with a	single report), followed by the report data (16 bytes). In	this example, the length passed in would be 17.
 
-hid\\_write() will send the data on the first OUT endpoint, if	one exists. If it does not, it will send the data through	the Control Endpoint (Endpoint 0).
+hid\\_write() will send the data on the first interrupt OUT 	endpoint, if one exists. If it does not the behaviour is as 	hid_send_output_report
 
 ` API`
 
-### Parameters
+# Arguments
 * `dev`: A device handle returned from hid\\_open().
 * `data`: The data to send, including the report number as	the first byte.
 * `length`: The length in bytes of the data to send.
-### Returns
+# Returns
 This function returns the actual number of bytes written and	-1 on error.	Call hid\\_error(dev) to get the failure reason.
 """
 function hid_write(dev, data, length)
@@ -146,13 +146,17 @@ Input reports are returned	to the host through the INTERRUPT IN endpoint. The fi
 
 ` API`
 
-### Parameters
+!!! note
+
+    This function doesn't change the buffer returned by the hid\\_error(dev).
+
+# Arguments
 * `dev`: A device handle returned from hid\\_open().
 * `data`: A buffer to put the read data into.
 * `length`: The number of bytes to read. For devices with	multiple reports, make sure to read an extra byte for	the report number.
 * `milliseconds`: timeout in milliseconds or -1 for blocking wait.
-### Returns
-This function returns the actual number of bytes read and	-1 on error.	Call hid\\_error(dev) to get the failure reason.	If no packet was available to be read within	the timeout period, this function returns 0.
+# Returns
+This function returns the actual number of bytes read and	-1 on error.	Call hid\\_read\\_error(dev) to get the failure reason.	If no packet was available to be read within	the timeout period, this function returns 0.
 """
 function hid_read_timeout(dev, data, length, milliseconds)
     @ccall hidapi.hid_read_timeout(dev::Ptr{hid_device}, data::Ptr{Cuchar}, length::Csize_t, milliseconds::Cint)::Cint
@@ -167,15 +171,43 @@ Input reports are returned	to the host through the INTERRUPT IN endpoint. The fi
 
 ` API`
 
-### Parameters
+!!! note
+
+    This function doesn't change the buffer returned by the hid\\_error(dev).
+
+# Arguments
 * `dev`: A device handle returned from hid\\_open().
 * `data`: A buffer to put the read data into.
 * `length`: The number of bytes to read. For devices with	multiple reports, make sure to read an extra byte for	the report number.
-### Returns
-This function returns the actual number of bytes read and	-1 on error.	Call hid\\_error(dev) to get the failure reason.	If no packet was available to be read and	the handle is in non-blocking mode, this function returns 0.
+# Returns
+This function returns the actual number of bytes read and	-1 on error.	Call hid\\_read\\_error(dev) to get the failure reason.	If no packet was available to be read and	the handle is in non-blocking mode, this function returns 0.
 """
 function hid_read(dev, data, length)
     @ccall hidapi.hid_read(dev::Ptr{hid_device}, data::Ptr{Cuchar}, length::Csize_t)::Cint
+end
+
+"""
+    hid_read_error(dev)
+
+Get a string describing the last error which occurred during hid\\_read/hid\\_read\\_timeout.
+
+Since version 0.15.0, HID_API_VERSION >= HID\\_API\\_MAKE\\_VERSION(0, 15, 0)
+
+This function is intended for logging/debugging purposes.
+
+This function guarantees to never return NULL for a valid dev.	If there was no error in the last call to hid\\_read/hid\\_read\\_error -	the returned string clearly indicates that.
+
+Strings returned from hid\\_read\\_error() must not be freed by the user,	i.e. owned by HIDAPI library.	Device-specific error string may remain allocated at most until hid\\_close() is called.
+
+` API`
+
+# Arguments
+* `dev`: A device handle. Shall never be NULL.
+# Returns
+A string describing the hid\\_read/hid\\_read\\_timeout error (if any).
+"""
+function hid_read_error(dev)
+    @ccall hidapi.hid_read_error(dev::Ptr{hid_device})::Ptr{Cwchar_t}
 end
 
 """
@@ -189,10 +221,10 @@ Nonblocking can be turned on and off at any time.
 
 ` API`
 
-### Parameters
+# Arguments
 * `dev`: A device handle returned from hid\\_open().
 * `nonblock`: enable or not the nonblocking reads	- 1 to enable nonblocking	- 0 to disable nonblocking.
-### Returns
+# Returns
 This function returns 0 on success and -1 on error.	Call hid\\_error(dev) to get the failure reason.
 """
 function hid_set_nonblocking(dev, nonblock)
@@ -208,11 +240,11 @@ Feature reports are sent over the Control endpoint as a	Set\\_Report transfer. T
 
 ` API`
 
-### Parameters
+# Arguments
 * `dev`: A device handle returned from hid\\_open().
 * `data`: The data to send, including the report number as	the first byte.
 * `length`: The length in bytes of the data to send, including	the report number.
-### Returns
+# Returns
 This function returns the actual number of bytes written and	-1 on error.	Call hid\\_error(dev) to get the failure reason.
 """
 function hid_send_feature_report(dev, data, length)
@@ -228,15 +260,41 @@ Set the first byte of `data`[] to the Report ID of the	report to be read. Make s
 
 ` API`
 
-### Parameters
+# Arguments
 * `dev`: A device handle returned from hid\\_open().
 * `data`: A buffer to put the read data into, including	the Report ID. Set the first byte of `data`[] to the	Report ID of the report to be read, or set it to zero	if your device does not use numbered reports.
 * `length`: The number of bytes to read, including an	extra byte for the report ID. The buffer can be longer	than the actual report.
-### Returns
+# Returns
 This function returns the number of bytes read plus	one for the report ID (which is still in the first	byte), or -1 on error.	Call hid\\_error(dev) to get the failure reason.
 """
 function hid_get_feature_report(dev, data, length)
     @ccall hidapi.hid_get_feature_report(dev::Ptr{hid_device}, data::Ptr{Cuchar}, length::Csize_t)::Cint
+end
+
+"""
+    hid_send_output_report(dev, data, length)
+
+Send a Output report to the device.
+
+Since version 0.15.0, HID_API_VERSION >= HID\\_API\\_MAKE\\_VERSION(0, 15, 0)
+
+Output reports are sent over the Control endpoint as a	Set\\_Report transfer. The first byte of `data`[] must	contain the Report ID. For devices which only support a	single report, this must be set to 0x0. The remaining bytes	contain the report data. Since the Report ID is mandatory,	calls to hid\\_send\\_output\\_report() will always contain one	more byte than the report contains. For example, if a hid	report is 16 bytes long, 17 bytes must be passed to	hid\\_send\\_output\\_report(): the Report ID (or 0x0, for	devices which do not use numbered reports), followed by the	report data (16 bytes). In this example, the length passed	in would be 17.
+
+This function sets the return value of hid\\_error().
+
+` API`
+
+# Arguments
+* `dev`: A device handle returned from hid\\_open().
+* `data`: The data to send, including the report number as	the first byte.
+* `length`: The length in bytes of the data to send, including	the report number.
+# Returns
+This function returns the actual number of bytes written and	-1 on error.
+# See also
+hid_write
+"""
+function hid_send_output_report(dev, data, length)
+    @ccall hidapi.hid_send_output_report(dev::Ptr{hid_device}, data::Ptr{Cuchar}, length::Csize_t)::Cint
 end
 
 """
@@ -250,11 +308,11 @@ Set the first byte of `data`[] to the Report ID of the	report to be read. Make s
 
 ` API`
 
-### Parameters
+# Arguments
 * `dev`: A device handle returned from hid\\_open().
 * `data`: A buffer to put the read data into, including	the Report ID. Set the first byte of `data`[] to the	Report ID of the report to be read, or set it to zero	if your device does not use numbered reports.
 * `length`: The number of bytes to read, including an	extra byte for the report ID. The buffer can be longer	than the actual report.
-### Returns
+# Returns
 This function returns the number of bytes read plus	one for the report ID (which is still in the first	byte), or -1 on error.	Call hid\\_error(dev) to get the failure reason.
 """
 function hid_get_input_report(dev, data, length)
@@ -268,7 +326,7 @@ Close a HID device.
 
 ` API`
 
-### Parameters
+# Arguments
 * `dev`: A device handle returned from hid\\_open().
 """
 function hid_close(dev)
@@ -282,11 +340,11 @@ Get The Manufacturer String from a HID device.
 
 ` API`
 
-### Parameters
+# Arguments
 * `dev`: A device handle returned from hid\\_open().
 * `string`: A wide string buffer to put the data into.
 * `maxlen`: The length of the buffer in multiples of wchar\\_t.
-### Returns
+# Returns
 This function returns 0 on success and -1 on error.	Call hid\\_error(dev) to get the failure reason.
 """
 function hid_get_manufacturer_string(dev, string, maxlen)
@@ -300,11 +358,11 @@ Get The Product String from a HID device.
 
 ` API`
 
-### Parameters
+# Arguments
 * `dev`: A device handle returned from hid\\_open().
 * `string`: A wide string buffer to put the data into.
 * `maxlen`: The length of the buffer in multiples of wchar\\_t.
-### Returns
+# Returns
 This function returns 0 on success and -1 on error.	Call hid\\_error(dev) to get the failure reason.
 """
 function hid_get_product_string(dev, string, maxlen)
@@ -318,11 +376,11 @@ Get The Serial Number String from a HID device.
 
 ` API`
 
-### Parameters
+# Arguments
 * `dev`: A device handle returned from hid\\_open().
 * `string`: A wide string buffer to put the data into.
 * `maxlen`: The length of the buffer in multiples of wchar\\_t.
-### Returns
+# Returns
 This function returns 0 on success and -1 on error.	Call hid\\_error(dev) to get the failure reason.
 """
 function hid_get_serial_number_string(dev, string, maxlen)
@@ -342,9 +400,9 @@ Since version 0.13.0, HID_API_VERSION >= HID\\_API\\_MAKE\\_VERSION(0, 13, 0)
 
     The returned object is owned by the `dev`, and SHOULD NOT be freed by the user.
 
-### Parameters
+# Arguments
 * `dev`: A device handle returned from hid\\_open().
-### Returns
+# Returns
 This function returns a pointer to the struct #hid\\_device\\_info	for this hid\\_device, or NULL in the case of failure.	Call hid\\_error(dev) to get the failure reason.	This struct is valid until the device is closed with hid\\_close().
 """
 function hid_get_device_info(dev)
@@ -358,12 +416,12 @@ Get a string from a HID device, based on its string index.
 
 ` API`
 
-### Parameters
+# Arguments
 * `dev`: A device handle returned from hid\\_open().
 * `string_index`: The index of the string to get.
 * `string`: A wide string buffer to put the data into.
 * `maxlen`: The length of the buffer in multiples of wchar\\_t.
-### Returns
+# Returns
 This function returns 0 on success and -1 on error.	Call hid\\_error(dev) to get the failure reason.
 """
 function hid_get_indexed_string(dev, string_index, string, maxlen)
@@ -381,11 +439,11 @@ User has to provide a preallocated buffer where descriptor will be copied to.	Th
 
 ` API`
 
-### Parameters
+# Arguments
 * `dev`: A device handle returned from hid\\_open().
 * `buf`: The buffer to copy descriptor into.
 * `buf_size`: The size of the buffer in bytes.
-### Returns
+# Returns
 This function returns non-negative number of bytes actually copied, or -1 on error.
 """
 function hid_get_report_descriptor(dev, buf, buf_size)
@@ -407,9 +465,9 @@ Strings returned from hid\\_error() must not be freed by the user,	i.e. owned by
 
 ` API`
 
-### Parameters
+# Arguments
 * `dev`: A device handle returned from hid\\_open(),	or NULL to get the last non-device-specific error	(e.g. for errors in hid\\_open() or hid\\_enumerate()).
-### Returns
+# Returns
 A string describing the last error (if any).
 """
 function hid_error(dev)
@@ -425,7 +483,7 @@ This function is thread-safe.
 
 ` API`
 
-### Returns
+# Returns
 Pointer to statically allocated struct, that contains version.
 """
 function hid_version()
@@ -441,7 +499,7 @@ This function is thread-safe.
 
 ` API`
 
-### Returns
+# Returns
 Pointer to statically allocated string, that contains version string.
 """
 function hid_version_str()
